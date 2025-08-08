@@ -1,0 +1,8 @@
+{
+    "name": "IndoDonghua Repo",
+    "description": "Nonton sepuasnya Pengangguran",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/plugins.json"
+    ]
+}
