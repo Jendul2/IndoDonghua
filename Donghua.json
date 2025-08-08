@@ -1,6 +1,6 @@
 {
-  "name": "IndoDonghua Repository",
-  "description": "Repository ekstensi CloudStream untuk anime Indonesia",
+  "name": "IndoDonghua STREAM",
+  "description": "Selamat menonton pengangguran",
   "manifestVersion": 1,
   "pluginLists": [
     "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/plugins.json"
