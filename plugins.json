@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Anixverse",
+    "description": "Streaming anime Indonesia dari Anixverse",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Anixverse.cs3",
+    "version": "1.0.0",
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "author": "Jendul2",
+    "language": "id"
+  },
+  {
+    "name": "Animexin",
+    "description": "Menonton anime dengan subtitle Indonesia dari Animexin",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Animexin.cs3",
+    "version": "1.0.0",
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "author": "Jendul2",
+    "language": "id"
+  },
+  {
+    "name": "Anichin",
+    "description": "Streaming anime Indonesia terlengkap dari Anichin",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Anichin.cs3",
+    "version": "1.0.0",
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "author": "Jendul2",
+    "language": "id"
+  }
+]
