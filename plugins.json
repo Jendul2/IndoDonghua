@@ -6,7 +6,12 @@
     "version": "1.0.0",
     "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
     "author": "Jendul2",
-    "language": "id"
+    "language": "id",
+    "tvTypes": [
+      "AnimeMovie",
+      "OVA",
+      "Anime"
+    ]
   },
   {
     "name": "Animexin",
@@ -15,7 +20,12 @@
     "version": "1.0.0",
     "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
     "author": "Jendul2",
-    "language": "id"
+    "language": "id",
+    "tvTypes": [
+      "AnimeMovie",
+      "OVA",
+      "Anime"
+    ]
   },
   {
     "name": "Anichin",
@@ -24,6 +34,11 @@
     "version": "1.0.0",
     "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
     "author": "Jendul2",
-    "language": "id"
+    "language": "id",
+    "tvTypes": [
+      "AnimeMovie",
+      "OVA",
+      "Anime"
+    ]
   }
 ]
