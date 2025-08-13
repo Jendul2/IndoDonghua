@@ -20,7 +20,7 @@ class KuronimeProvider : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val document = app.get(mainUrl).document
-        val home = document.select("div.listupd div.bsu").map {
+        val home = document.select("div.listupd article.bsu").map {
             val title = it.selectFirst("h2")?.text() ?: ""
             val poster = it.selectFirst("img")?.attr("src")
             val url = it.selectFirst("a")?.attr("href") ?: ""
