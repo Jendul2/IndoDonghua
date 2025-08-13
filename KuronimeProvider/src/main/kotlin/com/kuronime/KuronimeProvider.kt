@@ -8,6 +8,9 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import android.util.Base64
+import com.lagradost.cloudstream3.extractors.AnyVid
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 class KuronimeProvider : MainAPI() {
     override var mainUrl = "https://kuronime.fun"
@@ -62,13 +65,15 @@ class KuronimeProvider : MainAPI() {
             val a = it.selectFirst("a")
             val epUrl = a?.attr("href") ?: ""
             val epTitle = a?.text() ?: ""
-            Episode(epUrl, epTitle)
+            newEpisode(epUrl) {
+                name = epTitle
+            }
         }.reversed()
 
         return newAnimeLoadResponse(title, url, TvType.Anime) {
             this.posterUrl = poster
             this.plot = description
-            this.episodes = episodes
+            addEpisodes(DubStatus.Subbed, episodes)
         }
     }
 
@@ -77,7 +82,7 @@ class KuronimeProvider : MainAPI() {
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
-    ): Boolean {
+    ): Boolean = coroutineScope {
         val document = app.get(data).document
         val script = document.selectFirst("script:containsData(_0xa100d42aa)")?.data() ?: ""
         val id = script.substringAfter("var _0xa100d42aa = \"").substringBefore("\"")
@@ -88,13 +93,15 @@ class KuronimeProvider : MainAPI() {
         ).parsed<ApiResponse>()
 
         val decrypted = mydecriptor(apiResponse.data)
-        val sources = a_gson.fromJson(decrypted, Sources::class.java)
+        val sources = parseJson<Sources>(decrypted)
 
-        sources.embed.values.flatMap { it.values }.forEach { url ->
-            loadExtractor(url, subtitleCallback, callback)
-        }
+        sources.embed.values.flatMap { it.values }.map { url ->
+            async {
+                loadExtractor(url, subtitleCallback, callback)
+            }
+        }.awaitAll()
 
-        return true
+        return@coroutineScope true
     }
 
     private fun mydecriptor(encrypted: String): String {
