@@ -1,4 +1,4 @@
-package com.kuronime
+package com.kuronimeProvider
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class KuronimeProvider : MainAPI() {
     override var mainUrl = "https://kuronime.fun"
-    override var name = "Kuronime"
+    override var name = "kuronime v2"
     override val supportedTypes = setOf(TvType.Anime)
     override var lang = "id"
     override val hasMainPage = true
@@ -22,7 +22,8 @@ class KuronimeProvider : MainAPI() {
         val document = app.get(mainUrl).document
         val home = document.select("div.listupd article.bsu").map {
             val title = it.selectFirst("h2")?.text() ?: ""
-            val poster = it.selectFirst("img")?.attr("src")
+            val img = it.selectFirst("img")
+            val poster = img?.attr("data-lazy-src")?.ifBlank { null } ?: img?.attr("src")
             val url = it.selectFirst("a")?.attr("href") ?: ""
             newAnimeSearchResponse(
                 title,
@@ -43,7 +44,8 @@ class KuronimeProvider : MainAPI() {
         val document = app.get(url).document
         return document.select("div.listupd article").map {
             val title = it.selectFirst("h2")?.text() ?: ""
-            val poster = it.selectFirst("img")?.attr("src")
+            val img = it.selectFirst("img")
+            val poster = img?.attr("data-lazy-src")?.ifBlank { null } ?: img?.attr("src")
             val animeUrl = it.selectFirst("a")?.attr("href") ?: ""
             newAnimeSearchResponse(
                 title,
@@ -59,9 +61,9 @@ class KuronimeProvider : MainAPI() {
         val document = app.get(url).document
         val title = document.selectFirst("h1.entry-title")?.text() ?: ""
         val poster = document.selectFirst("div.thumb img")?.attr("src")
-        val description = document.selectFirst("div.entry-content p")?.text()
-        val episodes = document.select("div.eplister ul li").map {
-            val a = it.selectFirst("a")
+        val description = document.selectFirst("div.conx span.const")?.text()
+        val episodes = document.select("div.bixbox.bxcl > ul > li").map {
+            val a = it.selectFirst("span.lchx a")
             val epUrl = a?.attr("href") ?: ""
             val epTitle = a?.text() ?: ""
             newEpisode(epUrl) {
@@ -101,7 +103,7 @@ class KuronimeProvider : MainAPI() {
                 qualities.keys().forEach { quality ->
                     val url = qualities.getString(quality)
                     launch {
-                        loadExtractor(url, subtitleCallback, callback)
+                        loadExtractor(url, data, subtitleCallback, callback)
                     }
                 }
             }
