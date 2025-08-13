@@ -13,6 +13,7 @@ import com.lagradost.cloudstream3.utils.ExtractorLinkType
 import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.lagradost.cloudstream3.utils.loadExtractor
+import com.lagradost.cloudstream3.getRhinoContext
 import org.jsoup.nodes.Element
 import java.net.URI
 import java.util.ArrayList
@@ -179,63 +180,44 @@ class Kuronime : MainAPI() {
         }
     }
 
-
-
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val html = app.get(data).text
+        val document = app.get(data).document
+        val script = document.selectFirst("script:containsData(eval)")?.data()
 
-        // Ambil encoded ID dari iframe data-src
-        val idMatch = Regex("""id="iframedc".*?data-src="https://animeku\.org/watch\?_=([A-Za-z0-9%+/=]+)""")
-            .find(html)
-        val encodedId = idMatch?.groupValues?.get(1)
+        if (script?.isNotBlank() == true) {
+            val deobfuscatedScript = getRhinoContext().evaluateString(script, "JavaScript", 1).toString()
+            val encodedId = Regex("""src="https://animeku\.org/watch\?_=([A-Za-z0-9%+/=]+)""").find(deobfuscatedScript)?.groupValues?.get(1)
 
-        println("🆔⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ DEBUG: encodedId = $encodedId")
+            if (!encodedId.isNullOrBlank()) {
+                val jsonBody = """{"id":"$encodedId"}""".toRequestBody("application/json".toMediaType())
+                val apiRes = app.post(
+                    url = "https://animeku.org/api/v9/sources",
+                    headers = mapOf(
+                        "accept" to "application/json, text/javascript, */*; q=0.01",
+                        "content-type" to "application/json",
+                        "referer" to "https://kuronime.fun/"
+                    ),
+                    requestBody = jsonBody
+                ).text
+                val fileUrl = tryParseJson<Sources>(apiRes)?.src
 
-        if (!encodedId.isNullOrBlank()) {
-            val jsonBody = """{"id":"$encodedId"}"""
-                .toRequestBody("application/json".toMediaType())
-
-            val apiRes = app.post(
-                url = "https://animeku.org/api/v9/sources",
-                headers = mapOf(
-                    "accept" to "application/json, text/javascript, */*; q=0.01",
-                    "content-type" to "application/json",
-                    "referer" to "https://kuronime.fun/"
-                ),
-                requestBody = jsonBody
-            ).text
-
-            println("📦 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐DEBUG: API Response = $apiRes")
-
-            val json = parseJson<Map<String, Any>>(apiRes)
-            val fileUrl = json["file"] as? String
-
-            if (!fileUrl.isNullOrBlank()) {
-                println("🎯 DEBUG: fileUrl = $fileUrl")
-
-                loadFixedExtractor(
-                    url = fileUrl,
-                    referer = "https://kuronime.fun/",
-                    quality = null,
-                    subtitleCallback = subtitleCallback,
-                    callback = callback
-                )
-            } else {
-                println("⚠️ ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐DEBUG: fileUrl kosong / tidak ketemu")
+                if (!fileUrl.isNullOrBlank()) {
+                    loadFixedExtractor(
+                        url = fileUrl,
+                        referer = "https://kuronime.fun/",
+                        subtitleCallback = subtitleCallback,
+                        callback = callback
+                    )
+                }
             }
-        } else {
-            println("⚠️⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ DEBUG: encodedId tidak ketemu di HTML")
         }
-
         return true
     }
-
-
 
     private fun String.toJsonFormat(): String {
         return if (this.startsWith("\"")) this.substringAfter("\"").substringBeforeLast("\"")
@@ -244,24 +226,11 @@ class Kuronime : MainAPI() {
 
     private suspend fun loadFixedExtractor(
         url: String? = null,
-        quality: String? = null,
         referer: String? = null,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
-        loadExtractor(url ?: return, referer, subtitleCallback) { link ->
-            val extractorLink = ExtractorLink(
-                source = link.name ?: "Unknown",
-                name = link.name ?: "Unknown",
-                url = link.url,
-                referer = link.referer ?: referer ?: "",
-                quality = getQualityFromName(quality) ?: 0,
-                headers = link.headers ?: emptyMap(),
-                extractorData = link.extractorData,
-                type = link.type ?: ExtractorLinkType.VIDEO
-            )
-            callback.invoke(extractorLink)
-        }
+        loadExtractor(url ?: return, referer, subtitleCallback, callback)
     }
 
     private fun getBaseUrl(url: String): String {
