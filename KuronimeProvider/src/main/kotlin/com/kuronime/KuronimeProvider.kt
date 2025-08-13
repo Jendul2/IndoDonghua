@@ -3,14 +3,13 @@ package com.kuronime
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
-import org.jsoup.Jsoup
+import org.json.JSONObject
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import android.util.Base64
-import com.lagradost.cloudstream3.extractors.AnyVid
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 class KuronimeProvider : MainAPI() {
     override var mainUrl = "https://kuronime.fun"
@@ -82,7 +81,7 @@ class KuronimeProvider : MainAPI() {
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
-    ): Boolean = coroutineScope {
+    ): Boolean {
         val document = app.get(data).document
         val script = document.selectFirst("script:containsData(_0xa100d42aa)")?.data() ?: ""
         val id = script.substringAfter("var _0xa100d42aa = \"").substringBefore("\"")
@@ -93,15 +92,22 @@ class KuronimeProvider : MainAPI() {
         ).parsed<ApiResponse>()
 
         val decrypted = mydecriptor(apiResponse.data)
-        val sources = parseJson<Sources>(decrypted)
+        val sources = JSONObject(decrypted)
+        val embed = sources.getJSONObject("embed")
 
-        sources.embed.values.flatMap { it.values }.map { url ->
-            async {
-                loadExtractor(url, subtitleCallback, callback)
+        coroutineScope {
+            embed.keys().forEach { mirror ->
+                val qualities = embed.getJSONObject(mirror)
+                qualities.keys().forEach { quality ->
+                    val url = qualities.getString(quality)
+                    launch {
+                        loadExtractor(url, subtitleCallback, callback)
+                    }
+                }
             }
-        }.awaitAll()
+        }
 
-        return@coroutineScope true
+        return true
     }
 
     private fun mydecriptor(encrypted: String): String {
@@ -118,10 +124,5 @@ class KuronimeProvider : MainAPI() {
     data class ApiResponse(
         val status: Int,
         val data: String
-    )
-
-    data class Sources(
-        val embed: Map<String, Map<String, String>>,
-        val download: Map<String, Map<String, String>>
     )
 }
