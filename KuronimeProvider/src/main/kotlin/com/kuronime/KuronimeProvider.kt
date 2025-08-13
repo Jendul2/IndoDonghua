@@ -1,7 +1,13 @@
 package com.kuronime
 
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+import android.util.Base64
 
 class KuronimeProvider : MainAPI() {
     override var mainUrl = "https://kuronime.fun"
@@ -11,30 +17,44 @@ class KuronimeProvider : MainAPI() {
     override val hasMainPage = true
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val document = Jsoup.parse(app.get(mainUrl).text)
+        val document = app.get(mainUrl).document
         val home = document.select("div.listupd div.bsu").map {
             val title = it.selectFirst("h2")?.text() ?: ""
             val poster = it.selectFirst("img")?.attr("src")
             val url = it.selectFirst("a")?.attr("href") ?: ""
-            AnimeSearchResponse(
+            newAnimeSearchResponse(
                 title,
                 url,
-                this.name,
                 TvType.Anime,
-                poster,
-                null,
-                null,
-            )
+            ) {
+                this.posterUrl = poster
+            }
         }
-        return HomePageResponse(listOf(HomePageList("New Episodes", home)))
+        return newHomePageResponse(
+            list = HomePageList("New Episodes", home),
+            hasNext = false
+        )
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        return listOf()
+        val url = "$mainUrl/?s=$query"
+        val document = app.get(url).document
+        return document.select("div.listupd article").map {
+            val title = it.selectFirst("h2")?.text() ?: ""
+            val poster = it.selectFirst("img")?.attr("src")
+            val animeUrl = it.selectFirst("a")?.attr("href") ?: ""
+            newAnimeSearchResponse(
+                title,
+                animeUrl,
+                TvType.Anime,
+            ) {
+                this.posterUrl = poster
+            }
+        }
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val document = Jsoup.parse(app.get(url).text)
+        val document = app.get(url).document
         val title = document.selectFirst("h1.entry-title")?.text() ?: ""
         val poster = document.selectFirst("div.thumb img")?.attr("src")
         val description = document.selectFirst("div.entry-content p")?.text()
@@ -43,11 +63,12 @@ class KuronimeProvider : MainAPI() {
             val epUrl = a?.attr("href") ?: ""
             val epTitle = a?.text() ?: ""
             Episode(epUrl, epTitle)
-        }
+        }.reversed()
+
         return newAnimeLoadResponse(title, url, TvType.Anime) {
             this.posterUrl = poster
             this.plot = description
-            this.episodes = episodes.reversed()
+            this.episodes = episodes
         }
     }
 
@@ -57,7 +78,7 @@ class KuronimeProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val document = Jsoup.parse(app.get(data).text)
+        val document = app.get(data).document
         val script = document.selectFirst("script:containsData(_0xa100d42aa)")?.data() ?: ""
         val id = script.substringAfter("var _0xa100d42aa = \"").substringBefore("\"")
 
@@ -69,31 +90,22 @@ class KuronimeProvider : MainAPI() {
         val decrypted = mydecriptor(apiResponse.data)
         val sources = a_gson.fromJson(decrypted, Sources::class.java)
 
-        sources.embed.forEach { (mirror, qualities) ->
-            qualities.forEach { (quality, url) ->
-                callback.invoke(
-                    ExtractorLink(
-                        this.name,
-                        "${this.name} $mirror $quality",
-                        url,
-                        "",
-                        getQualityFromName(quality),
-                    )
-                )
-            }
+        sources.embed.values.flatMap { it.values }.forEach { url ->
+            loadExtractor(url, subtitleCallback, callback)
         }
+
         return true
     }
 
     private fun mydecriptor(encrypted: String): String {
-        val key = "3&!Z0M,rawa;dZW==".toByteArray()
-        val secretKey = javax.crypto.spec.SecretKeySpec(key, "AES")
-        val cipher = javax.crypto.Cipher.getInstance("AES/CBC/PKCS5Padding")
-        val encryptedData = android.util.Base64.decode(encrypted, android.util.Base64.DEFAULT)
-        val iv = encryptedData.copyOfRange(0, 16)
-        val cipherText = encryptedData.copyOfRange(16, encryptedData.size)
-        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, secretKey, javax.crypto.spec.IvParameterSpec(iv))
-        return String(cipher.doFinal(cipherText))
+        val key = "3&!Z0M,rawa;dZW==".toByteArray(Charsets.UTF_8)
+        val secretKey = SecretKeySpec(key, "AES")
+        val decoded = Base64.decode(encrypted, Base64.DEFAULT)
+        val iv = decoded.copyOfRange(0, 16)
+        val cipherText = decoded.copyOfRange(16, decoded.size)
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(iv))
+        return String(cipher.doFinal(cipherText), Charsets.UTF_8)
     }
 
     data class ApiResponse(
