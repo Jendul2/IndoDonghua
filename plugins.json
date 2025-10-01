@@ -55,8 +55,68 @@
       "Anime"
     ],
     "version": 1,
-    "internalName": "Anichin1",
+    "internalName": "Anichin",
     "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Anichin.cs3",
-    "name": "Anichin1"
+    "name": "Anichin"
+  },
+  {
+    "iconUrl": "https://www.google.com/s2/favicons?domain=bilitv.com&sz=64",
+    "apiVersion": 1,
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "fileSize": 14500,
+    "status": 1,
+    "language": "id",
+    "authors": [
+      "Jendul2"
+    ],
+    "tvTypes": [
+      "AnimeMovie",
+      "OVA",
+      "Anime"
+    ],
+    "version": 1,
+    "internalName": "Bilitv",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Bilitv.cs3",
+    "name": "Bilitv"
+  },
+  {
+    "iconUrl": "https://www.google.com/s2/favicons?domain=dramabox.com&sz=64",
+    "apiVersion": 1,
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "fileSize": 14200,
+    "status": 1,
+    "language": "id",
+    "authors": [
+      "Jendul2"
+    ],
+    "tvTypes": [
+      "Drama",
+      "Movie",
+      "Series"
+    ],
+    "version": 1,
+    "internalName": "DramaBox",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/DramaBox.cs3",
+    "name": "DramaBox"
+  },
+  {
+    "iconUrl": "https://www.google.com/s2/favicons?domain=v1.samehadaku.how&sz=64",
+    "apiVersion": 1,
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "fileSize": 15000,
+    "status": 1,
+    "language": "id",
+    "authors": [
+      "Jendul2"
+    ],
+    "tvTypes": [
+      "AnimeMovie",
+      "OVA",
+      "Anime"
+    ],
+    "version": 1,
+    "internalName": "Samehadaku",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Samehadaku.cs3",
+    "name": "Samehadaku"
   }
 ]
