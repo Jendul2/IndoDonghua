@@ -118,5 +118,44 @@
     "internalName": "Samehadaku",
     "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Samehadaku.cs3",
     "name": "Samehadaku"
+  },
+  {
+    "iconUrl": "https://www.google.com/s2/favicons?domain=moviebox.id/&sz=64",
+    "apiVersion": 1,
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "fileSize": 14800,
+    "status": 1,
+    "language": "id",
+    "authors": [
+      "Jendul2"
+    ],
+    "tvTypes": [
+      "Movie",
+      "Series",
+      "Drama"
+    ],
+    "version": 1,
+    "internalName": "MovieBox",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/MovieBox.cs3",
+    "name": "MovieBox"
+  },
+  {
+    "iconUrl": "https://www.google.com/s2/favicons?domain=melo-short.com/&sz=64",
+    "apiVersion": 1,
+    "repositoryUrl": "https://github.com/Jendul2/IndoDonghua",
+    "fileSize": 13500,
+    "status": 1,
+    "language": "id",
+    "authors": [
+      "Jendul2"
+    ],
+    "tvTypes": [
+      "ShortMovie",
+      "Series"
+    ],
+    "version": 1,
+    "internalName": "Meloshort",
+    "url": "https://raw.githubusercontent.com/Jendul2/IndoDonghua/Builds/Meloshort.cs3",
+    "name": "Meloshort"
   }
 ]
